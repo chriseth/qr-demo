@@ -1,0 +1,82 @@
+<html>
+
+<head>
+  <title>QR Test</title>
+</head>
+
+<body>
+  <h1>Live QR Decoder</h1>
+  <div id="preview"></div>
+  <div class="camera">
+    <video id="video">Video stream not available.</video>
+  </div>
+  <canvas id="canvas" style="display: none;">
+  </canvas>
+
+  <script type="text/javascript" src="qrcode-reader.min.js"></script>
+
+  <script type="text/javascript">
+    (function () {
+      'use strict';
+
+      var upload = document.getElementById('upload');
+      var preview = document.getElementById('preview');
+      video = document.getElementById('video');
+      canvas = document.getElementById('canvas');
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then(function (stream) {
+          video.srcObject = stream;
+          video.muted = true;
+          video.play();
+        })
+        .catch(function (err) {
+          showResult(null, "An error occured! " + err);
+        });
+      var width = 320;    // We will scale the photo width to this
+      var height = 0;     // This will be computed based on the input stream
+
+      var streamingStarted = false;
+      video.addEventListener('canplay', function (ev) {
+        if (!streamingStarted) {
+          height = video.videoHeight / (video.videoWidth / width);
+          video.setAttribute('width', width);
+          video.setAttribute('height', height);
+          canvas.setAttribute('width', width);
+          canvas.setAttribute('height', height);
+          streamingStarted = true;
+        }
+      }, false);
+      var scanInterval = window.setInterval(scanCode, 500);
+      function scanCode() {
+        if (width && height) {
+          var context = canvas.getContext('2d');
+          canvas.width = width;
+          canvas.height = height;
+          context.drawImage(video, 0, 0, width, height);
+          qr.decode(canvas.toDataURL('image/png'));
+        }
+      }
+
+      var qr = new QrCode();
+      qr.callback = showResult;
+      var codeFound = false;
+      function showResult(result, err) {
+        if (codeFound) {
+          return;
+        }
+        var span = document.querySelector('span') || document.createElement('span');
+        if (result) {
+          span.textContent = result;
+          codeFound = true;
+          video.pause();
+          window.clearInterval(scanInterval);
+        } else {
+          span.textContent = 'Error: ' + err;
+        }
+        preview.appendChild(span);
+      }
+    })();
+  </script>
+</body>
+
+</html>
