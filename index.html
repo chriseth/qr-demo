@@ -22,8 +22,8 @@
 
       var upload = document.getElementById('upload');
       var preview = document.getElementById('preview');
-      video = document.getElementById('video');
-      canvas = document.getElementById('canvas');
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
       navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         .then(function (stream) {
           video.srcObject = stream;
